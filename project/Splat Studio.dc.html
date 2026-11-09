@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>body{margin:0;background:#0d0e10;color:#e8e6e1;font-family:Geist,system-ui,sans-serif;-webkit-font-smoothing:antialiased}a{color:#f0b25a}a:hover{color:#ffd08a}*{box-sizing:border-box}</style>
+</helmet>
+<div style="height:100vh;min-width:1180px;display:grid;grid-template-rows:52px 1fr;background:#0d0e10">
+  <header style="display:flex;align-items:center;gap:20px;padding:0 16px;border-bottom:1px solid #23262b;background:#121316">
+    <div style="display:flex;align-items:center;gap:10px;min-width:220px">
+      <div style="width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffd08a,#e0913a 55%,#6b3a12)"></div>
+      <div style="display:flex;flex-direction:column;line-height:1.15">
+        <span style="font-weight:600;font-size:13px">Splat Studio</span>
+        <span style="font:400 11px 'Geist Mono',monospace;color:#7d828a">{{ projectName }}</span>
+      </div>
+    </div>
+    <nav style="display:flex;gap:2px;flex:1">
+      <sc-for list="{{ steps }}" as="s" hint-placeholder-count="4">
+        <sc-if value="{{ s.active }}">
+          <button onClick="{{ s.go }}" style="display:flex;align-items:center;gap:8px;padding:7px 12px;border:0;border-radius:6px;background:#1f2226;color:#e8e6e1;font:500 13px Geist,sans-serif;cursor:pointer"><span style="font:500 11px 'Geist Mono',monospace;color:#f0b25a">{{ s.num }}</span>{{ s.label }}</button>
+        </sc-if>
+        <sc-if value="{{ s.inactive }}">
+          <button onClick="{{ s.go }}" style="display:flex;align-items:center;gap:8px;padding:7px 12px;border:0;border-radius:6px;background:transparent;color:#8a8f97;font:500 13px Geist,sans-serif;cursor:pointer" style-hover="color:#e8e6e1"><span style="font:500 11px 'Geist Mono',monospace;color:#5a5f66">{{ s.num }}</span>{{ s.label }}</button>
+        </sc-if>
+      </sc-for>
+    </nav>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:12px;color:#7d828a">Capture type</span>
+      <div style="display:flex;padding:3px;background:#0d0e10;border:1px solid #2a2d33;border-radius:8px;gap:2px">
+        <sc-for list="{{ modeOptions }}" as="m" hint-placeholder-count="3">
+          <sc-if value="{{ m.active }}">
+            <button onClick="{{ m.pick }}" style="padding:6px 14px;border:0;border-radius:5px;background:#f0b25a;color:#1a1206;font:600 12px Geist,sans-serif;cursor:pointer">{{ m.label }}</button>
+          </sc-if>
+          <sc-if value="{{ m.inactive }}">
+            <button onClick="{{ m.pick }}" style="padding:6px 14px;border:0;border-radius:5px;background:transparent;color:#a9adb4;font:500 12px Geist,sans-serif;cursor:pointer" style-hover="background:#1c1f23;color:#e8e6e1">{{ m.label }}</button>
+          </sc-if>
+        </sc-for>
+      </div>
+    </div>
+  </header>
+
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0">
+    <main style="min-height:0;overflow:auto;padding:24px 28px;display:grid;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;align-content:start;gap:20px">
+
+      <sc-if value="{{ isImport }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.01em">Import video</h1>
+            <p style="margin:6px 0 0;color:#8a8f97;font-size:13px">Clips are decoded and sampled into still frames for camera solving.</p>
+          </div>
+          <button onClick="{{ next }}" style="padding:9px 16px;border:0;border-radius:6px;background:#f0b25a;color:#1a1206;font:600 13px Geist,sans-serif;cursor:pointer">Extract frames →</button>
+        </div>
+        <div style="border:1.5px dashed #3a3e45;border-radius:10px;padding:34px;display:flex;flex-direction:column;align-items:center;gap:8px;background:#111215">
+          <div style="width:40px;height:40px;border-radius:8px;border:1px solid #3a3e45;display:grid;place-items:center;color:#f0b25a;font-size:20px">↑</div>
+          <div style="font-size:14px;font-weight:500">Drop video files or a folder</div>
+          <div style="font:400 12px 'Geist Mono',monospace;color:#7d828a">MP4 · MOV · MKV · 360° equirect · up to 8K / 120 fps</div>
+        </div>
+        <div style="border:1px solid #23262b;border-radius:10px;overflow:hidden">
+          <div style="display:grid;grid-template-columns:64px minmax(0,2fr) 1fr 1fr 1fr 1fr 110px;gap:12px;padding:10px 14px;background:#121316;font:500 11px 'Geist Mono',monospace;color:#6c7179;text-transform:uppercase;letter-spacing:0.04em">
+            <span></span><span>File</span><span>Duration</span><span>Resolution</span><span>Frame rate</span><span>Est. frames</span><span>Status</span>
+          </div>
+          <sc-for list="{{ clips }}" as="c" hint-placeholder-count="3">
+            <div style="display:grid;grid-template-columns:64px minmax(0,2fr) 1fr 1fr 1fr 1fr 110px;gap:12px;padding:10px 14px;align-items:center;border-top:1px solid #1d2024;font-size:13px">
+              <div style="width:64px;height:36px;border-radius:4px;background:repeating-linear-gradient(135deg,#1b1d21 0 6px,#16181b 6px 12px);border:1px solid #2a2d33"></div>
+              <div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:500;overflow:hidden;text-overflow:ellipsis">{{ c.name }}</span><span style="font:400 11px 'Geist Mono',monospace;color:#6c7179">{{ c.codec }}</span></div>
+              <span style="font-family:'Geist Mono',monospace;color:#b9bcc2">{{ c.dur }}</span>
+              <span style="font-family:'Geist Mono',monospace;color:#b9bcc2">{{ c.res }}</span>
+              <span style="font-family:'Geist Mono',monospace;color:#b9bcc2">{{ c.fps }}</span>
+              <span style="font-family:'Geist Mono',monospace;color:#e8e6e1">{{ c.est }}</span>
+              <span style="font:500 11px 'Geist Mono',monospace;color:#8fd19e">● {{ c.status }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">
+          <sc-for list="{{ extraction }}" as="e" hint-placeholder-count="4">
+            <div style="padding:14px;border:1px solid #23262b;border-radius:10px;background:#121316;display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:12px;color:#8a8f97">{{ e.k }}</span>
+              <span style="font:500 18px 'Geist Mono',monospace">{{ e.v }}</span>
+              <span style="font-size:11px;color:#6c7179;text-wrap:pretty">{{ e.hint }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isFrames }}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.01em">Frames</h1>
+            <p style="margin:6px 0 0;color:#8a8f97;font-size:13px">{{ frameSummary }}</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button onClick="{{ toggleRejected }}" style="padding:9px 14px;border:1px solid #2a2d33;border-radius:6px;background:transparent;color:#e8e6e1;font:500 13px Geist,sans-serif;cursor:pointer">{{ rejectedLabel }}</button>
+            <button onClick="{{ next }}" style="padding:9px 16px;border:0;border-radius:6px;background:#f0b25a;color:#1a1206;font:600 13px Geist,sans-serif;cursor:pointer">Configure →</button>
+          </div>
+        </div>
+        <div style="border:1px solid #23262b;border-radius:10px;background:#121316;padding:14px 14px 10px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;font:400 11px 'Geist Mono',monospace;color:#6c7179"><span>SHARPNESS · LAPLACIAN VARIANCE</span><span>threshold {{ blurThreshold }}</span></div>
+          <div style="display:flex;align-items:flex-end;gap:2px;height:64px;position:relative">
+            <sc-for list="{{ sharpBars }}" as="b" hint-placeholder-count="80">
+              <div style="flex:1;height:{{ b.h }}%;background:{{ b.c }};border-radius:1px"></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">
+          <sc-for list="{{ frames }}" as="f" hint-placeholder-count="30">
+            <sc-if value="{{ f.ok }}">
+              <div style="aspect-ratio:16/9;border-radius:5px;border:1px solid #2a2d33;background:repeating-linear-gradient(135deg,#1c1f23 0 7px,#17191c 7px 14px);position:relative">
+                <span style="position:absolute;left:6px;bottom:5px;font:400 10px 'Geist Mono',monospace;color:#8a8f97">{{ f.id }}</span>
+              </div>
+            </sc-if>
+            <sc-if value="{{ f.bad }}">
+              <div style="aspect-ratio:16/9;border-radius:5px;border:1px solid #5a2a24;background:repeating-linear-gradient(135deg,#1a1514 0 7px,#151212 7px 14px);position:relative;opacity:0.7">
+                <span style="position:absolute;left:6px;bottom:5px;font:400 10px 'Geist Mono',monospace;color:#8a8f97">{{ f.id }}</span>
+                <span style="position:absolute;right:5px;top:5px;font:500 9px 'Geist Mono',monospace;color:#ff9b8a;background:#3a1a16;padding:2px 5px;border-radius:3px">{{ f.reason }}</span>
+              </div>
+            </sc-if>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isConfig }}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.01em">Configure · {{ modeLabel }}</h1>
+            <p style="margin:6px 0 0;color:#8a8f97;font-size:13px;max-width:620px;text-wrap:pretty">{{ modeDesc }}</p>
+          </div>
+          <button onClick="{{ next }}" style="padding:9px 16px;border:0;border-radius:6px;background:#f0b25a;color:#1a1206;font:600 13px Geist,sans-serif;cursor:pointer">Start training →</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;align-items:start">
+          <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+            <div style="border:1px solid #23262b;border-radius:10px;background:#121316;overflow:hidden">
+              <div style="padding:12px 14px;border-bottom:1px solid #1d2024;display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-size:13px;font-weight:600">{{ g.title }}</span>
+                <span style="font:400 11px 'Geist Mono',monospace;color:#6c7179">{{ g.tag }}</span>
+              </div>
+              <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="5">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid #191b1f">
+                  <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                    <span style="font-size:13px">{{ r.k }}</span>
+                    <span style="font-size:11px;color:#6c7179;text-wrap:pretty">{{ r.hint }}</span>
+                  </div>
+                  <sc-if value="{{ r.isOn }}"><div style="flex:none;width:30px;height:18px;border-radius:9px;background:#f0b25a;position:relative"><div style="position:absolute;right:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#1a1206"></div></div></sc-if>
+                  <sc-if value="{{ r.isOff }}"><div style="flex:none;width:30px;height:18px;border-radius:9px;background:#2a2d33;position:relative"><div style="position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#7d828a"></div></div></sc-if>
+                  <sc-if value="{{ r.isVal }}"><span style="flex:none;white-space:nowrap;font:500 12px 'Geist Mono',monospace;padding:4px 8px;border:1px solid #2a2d33;border-radius:5px;background:#0d0e10">{{ r.v }}</span></sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ isTrain }}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div>
+            <h1 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.01em">Train &amp; view</h1>
+            <p style="margin:6px 0 0;color:#8a8f97;font-size:13px">{{ trainSummary }}</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button style="padding:9px 14px;border:1px solid #2a2d33;border-radius:6px;background:transparent;color:#e8e6e1;font:500 13px Geist,sans-serif;cursor:pointer;white-space:nowrap">Export .ply</button>
+            <button style="padding:9px 14px;border:1px solid #2a2d33;border-radius:6px;background:transparent;color:#e8e6e1;font:500 13px Geist,sans-serif;cursor:pointer;white-space:nowrap">Export .splat</button>
+          </div>
+        </div>
+        <div style="position:relative;border:1px solid #23262b;border-radius:10px;overflow:hidden;background:#08090a;height:480px">
+          <canvas ref="{{ canvasRef }}" style="width:100%;height:100%;display:block"></canvas>
+          <div style="position:absolute;left:12px;top:12px;display:flex;gap:6px">
+            <span style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;border-radius:4px;background:rgba(13,14,16,.85);border:1px solid #2a2d33;white-space:nowrap">{{ modeLabel }} · live preview</span>
+            <span style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;border-radius:4px;background:rgba(13,14,16,.85);border:1px solid #2a2d33;color:#f0b25a;white-space:nowrap">iter {{ iterLabel }}</span>
+          </div>
+          <div style="position:absolute;right:12px;top:12px;display:flex;gap:2px;padding:3px;border-radius:6px;background:rgba(13,14,16,.85);border:1px solid #2a2d33">
+            <span style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;border-radius:4px;background:#1f2226">RGB</span>
+            <span style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;color:#8a8f97">Depth</span>
+            <span style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;color:#8a8f97">Ellipsoids</span>
+            <span style="font:500 11px 'Geist Mono',monospace;padding:4px 8px;color:#8a8f97">Cameras</span>
+          </div>
+          <div style="position:absolute;left:12px;right:12px;bottom:12px;height:4px;border-radius:2px;background:#1f2226;overflow:hidden">
+            <div style="height:100%;width:{{ progressPct }}%;background:#f0b25a"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px">
+          <sc-for list="{{ trainStats }}" as="t" hint-placeholder-count="4">
+            <div style="padding:14px;border:1px solid #23262b;border-radius:10px;background:#121316;display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:12px;color:#8a8f97">{{ t.k }}</span>
+              <span style="font:500 18px 'Geist Mono',monospace">{{ t.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </main>
+
+    <aside style="border-left:1px solid #23262b;background:#121316;min-height:0;overflow:auto;display:flex;flex-direction:column">
+      <div style="padding:18px 18px 14px;border-bottom:1px solid #1d2024;display:flex;flex-direction:column;gap:6px">
+        <span style="font:500 11px 'Geist Mono',monospace;color:#6c7179;letter-spacing:0.04em">PRESET PROFILE</span>
+        <span style="font-size:17px;font-weight:600">{{ modeLabel }}</span>
+        <span style="font-size:12px;color:#8a8f97;text-wrap:pretty">{{ modeShort }}</span>
+      </div>
+      <div style="padding:8px 0">
+        <sc-for list="{{ profile }}" as="p" hint-placeholder-count="8">
+          <div style="display:flex;justify-content:space-between;gap:12px;padding:7px 18px;font-size:12px">
+            <span style="color:#8a8f97">{{ p.k }}</span>
+            <span style="font-family:'Geist Mono',monospace;color:#e8e6e1;text-align:right">{{ p.v }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="margin-top:auto;padding:16px 18px;border-top:1px solid #1d2024;display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#8a8f97">GPU</span><span style="font-family:'Geist Mono',monospace">RTX 4090 · 24 GB</span></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#8a8f97">Est. VRAM</span><span style="font-family:'Geist Mono',monospace;color:#f0b25a">{{ vram }}</span></div>
+        <div style="height:4px;border-radius:2px;background:#1f2226;overflow:hidden"><div style="height:100%;width:{{ vramPct }}%;background:#f0b25a"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:12px"><span style="color:#8a8f97">Est. train time</span><span style="font-family:'Geist Mono',monospace">{{ eta }}</span></div>
+      </div>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;startStep&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Import&quot;,&quot;Frames&quot;,&quot;Configure&quot;,&quot;Train&quot;],&quot;default&quot;:&quot;Import&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;showRejected&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;}}">
+const MODES = {
+  object: {
+    label: 'Object', short: 'Tight orbit around a single subject. Background is masked out.',
+    desc: 'Tuned for turntable or orbit captures of a single subject. The background is segmented away, the scene is normalized to a unit sphere, and densification is aggressive to resolve fine surface detail.',
+    fps: '4 fps', max: '300', blur: '120', res: '2160p', frames: 268, rejected: 22, iters: '30,000', gauss: '1.4M', vram: '9.8 GB', vp: 41, eta: '18 min',
+    groups: [
+      { title: 'Camera solve', tag: 'SfM', rows: [['Camera model', 'Pinhole', 'Single shared intrinsics'], ['Matcher', 'Sequential + loop', 'Orbit closes on itself'], ['Feature count', '8,192', 'Per frame'], ['Mask features to subject', true, 'Ignores background keypoints']] },
+      { title: 'Subject & bounds', tag: 'SCENE', rows: [['Background removal', true, 'Auto-segment subject'], ['Normalize to unit sphere', true, 'Centers on subject'], ['Bounding volume', 'Tight · 1.1×', 'Culls floaters outside'], ['Ground plane', false, 'Off for turntables']] },
+      { title: 'Training', tag: '3DGS', rows: [['Iterations', '30,000', ''], ['SH degree', '3', 'View-dependent color'], ['Densify until', '15,000', 'Stop splitting after'], ['Densify grad threshold', '0.0001', 'Lower = more detail'], ['Max gaussians', '1.5M', 'Hard cap']] }
+    ]
+  },
+  room: {
+    label: 'Room', short: 'Inside-out walkthrough of an interior. Handles exposure shifts and flat walls.',
+    desc: 'Tuned for handheld walkthroughs of interior spaces. Exposure is compensated between frames, depth priors regularize flat walls and floors, and the scene is aligned so the floor sits at Y = 0.',
+    fps: '2 fps', max: '600', blur: '100', res: '1440p', frames: 412, rejected: 37, iters: '30,000', gauss: '3.1M', vram: '15.2 GB', vp: 63, eta: '34 min',
+    groups: [
+      { title: 'Camera solve', tag: 'SfM', rows: [['Camera model', 'Simple radial', 'Corrects phone lens distortion'], ['Matcher', 'Sequential + vocab tree', 'Recovers revisited corners'], ['Feature count', '12,000', 'Per frame'], ['Rig / IMU priors', true, 'Use device metadata if present']] },
+      { title: 'Interior', tag: 'SCENE', rows: [['Exposure compensation', true, 'Per-frame affine color'], ['Depth regularization', true, 'Monocular depth prior'], ['Floor alignment', true, 'Gravity-up, floor at Y = 0'], ['Window masking', false, 'Mask blown-out glass']] },
+      { title: 'Training', tag: '3DGS', rows: [['Iterations', '30,000', ''], ['SH degree', '3', ''], ['Densify until', '15,000', ''], ['Opacity reset interval', '3,000', 'Removes floaters'], ['Max gaussians', '3.5M', 'Hard cap']] }
+    ]
+  },
+  env: {
+    label: 'Environment', short: 'Large outdoor or open area. Sky handled separately, scales to millions of splats.',
+    desc: 'Tuned for large outdoor captures such as drone flights, streets and landscapes. Sky is masked to a background model, appearance embeddings absorb lighting changes, and output is built with level-of-detail chunks.',
+    fps: '1 fps', max: '1,500', blur: '80', res: '2160p', frames: 1184, rejected: 96, iters: '60,000', gauss: '7.8M', vram: '21.4 GB', vp: 89, eta: '2 h 10 min',
+    groups: [
+      { title: 'Camera solve', tag: 'SfM', rows: [['Camera model', 'OpenCV fisheye', 'Wide / action cams'], ['Matcher', 'Spatial (GPS) + vocab tree', 'Uses EXIF / SRT GPS'], ['Feature count', '16,000', 'Per frame'], ['Georeference', true, 'Output in metric world units']] },
+      { title: 'Outdoor', tag: 'SCENE', rows: [['Sky segmentation', true, 'Sky to background sphere'], ['Appearance embeddings', true, 'Absorbs sun / cloud changes'], ['Transient object masking', true, 'People, cars'], ['Chunked LOD output', true, 'Streams large scenes']] },
+      { title: 'Training', tag: '3DGS', rows: [['Iterations', '60,000', ''], ['SH degree', '2', 'Saves memory at scale'], ['Densify until', '30,000', ''], ['Scale regularization', '0.01', 'Prevents giant splats'], ['Max gaussians', '8M', 'Hard cap']] }
+    ]
+  }
+};
+const STEPS = ['Import', 'Frames', 'Configure', 'Train & view'];
+
+class Component extends DCLogic {
+  state = { step: null, mode: 'room', showRej: null, iter: 0 };
+  canvasRef = React.createRef();
+
+  componentDidMount() {
+    this.t0 = performance.now();
+    const loop = (t) => { this.raf = requestAnimationFrame(loop); this.draw(t); };
+    this.raf = requestAnimationFrame(loop);
+    this.iv = setInterval(() => { if (this.getStep() === 3) this.setState(s => ({ iter: Math.min(1, s.iter + 0.004) })); }, 120);
+  }
+  componentWillUnmount() { cancelAnimationFrame(this.raf); clearInterval(this.iv); }
+  getStep() { return this.state.step ?? ({ Import: 0, Frames: 1, Configure: 2, Train: 3 }[this.props.startStep] ?? 0); }
+
+  buildPoints(mode) {
+    let seed = 7; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const g = () => (r() + r() + r() - 1.5) / 1.5;
+    const pts = [];
+    const add = (x, y, z, h, s, l, sz) => pts.push({ x, y, z, h, s, l, sz });
+    if (mode === 'object') {
+      for (let i = 0; i < 2600; i++) { const th = r() * Math.PI * 2, ph = Math.acos(2 * r() - 1); const rad = 0.9 + g() * 0.06; const y = Math.cos(ph) * rad * 1.15; add(Math.sin(ph) * Math.cos(th) * rad * (1 - y * 0.25), y, Math.sin(ph) * Math.sin(th) * rad * (1 - y * 0.25), 28 + g() * 14, 55, 38 + y * 18 + g() * 8, 6 + r() * 10); }
+      for (let i = 0; i < 500; i++) { const th = r() * Math.PI * 2, rad = r() * 1.4; add(Math.cos(th) * rad, -1.15, Math.sin(th) * rad, 220, 6, 22 + r() * 8, 10 + r() * 10); }
+    } else if (mode === 'room') {
+      for (let i = 0; i < 3600; i++) { const w = Math.floor(r() * 5); let x = g() * 2, y = (r() * 2 - 1) * 1.1, z = g() * 2; if (w === 0) x = -2; if (w === 1) x = 2; if (w === 2) z = -2; if (w === 3) y = -1.1; if (w === 4) z = 2; const floor = w === 3; add(x, y, z, floor ? 30 : 40, floor ? 35 : 12, floor ? 30 + r() * 10 : 55 + r() * 12, 8 + r() * 12); }
+      for (let i = 0; i < 700; i++) add(0.4 + g() * 0.6, -0.7 + g() * 0.15, -0.3 + g() * 0.5, 18, 45, 30 + r() * 10, 6 + r() * 8);
+    } else {
+      for (let i = 0; i < 3200; i++) { const x = (r() * 2 - 1) * 3.2, z = (r() * 2 - 1) * 3.2; add(x, -0.9 + Math.sin(x * 1.3) * 0.12 + Math.cos(z) * 0.1, z, 80 + g() * 20, 30, 28 + r() * 10, 8 + r() * 12); }
+      for (let k = 0; k < 9; k++) { const cx = (r() * 2 - 1) * 2.6, cz = (r() * 2 - 1) * 2.6, hgt = 0.6 + r() * 0.9; for (let i = 0; i < 260; i++) { const t = r(); add(cx + g() * 0.35 * (1 - t * 0.6), -0.9 + t * hgt + 0.2, cz + g() * 0.35 * (1 - t * 0.6), 110 + g() * 15, 35, 24 + t * 14, 6 + r() * 9); } }
+    }
+    return pts;
+  }
+
+  draw(t) {
+    const c = this.canvasRef.current; if (!c) return;
+    const dpr = window.devicePixelRatio || 1, W = c.clientWidth, H = c.clientHeight;
+    if (c.width !== W * dpr) { c.width = W * dpr; c.height = H * dpr; }
+    const ctx = c.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#08090a'; ctx.fillRect(0, 0, W, H);
+    if (this.ptsMode !== this.state.mode) { this.pts = this.buildPoints(this.state.mode); this.ptsMode = this.state.mode; }
+    const a = (t - this.t0) / 9000, ca = Math.cos(a), sa = Math.sin(a), tilt = 0.32, ct = Math.cos(tilt), st = Math.sin(tilt);
+    const prog = 0.25 + this.state.iter * 0.75, f = Math.min(W, H) * (this.state.mode === 'env' ? 0.9 : 1.05), cam = this.state.mode === 'room' ? 5 : 4.2;
+    const proj = this.pts.map(p => { const x = p.x * ca - p.z * sa, z0 = p.x * sa + p.z * ca; const y = p.y * ct - z0 * st, z = p.y * st + z0 * ct + cam; return { p, sx: W / 2 + (x / z) * f, sy: H / 2 - (y / z) * f, z }; }).filter(q => q.z > 0.3).sort((A, B) => B.z - A.z);
+    const n = Math.floor(proj.length * prog);
+    for (let i = 0; i < proj.length; i++) {
+      if ((i * 7919) % proj.length > n) continue;
+      const { p, sx, sy, z } = proj[i]; const rad = (p.sz * (1.6 - prog * 0.6)) / z * 2.2;
+      const grd = ctx.createRadialGradient(sx, sy, 0, sx, sy, rad);
+      grd.addColorStop(0, `hsla(${p.h},${p.s}%,${p.l}%,0.55)`); grd.addColorStop(1, `hsla(${p.h},${p.s}%,${p.l}%,0)`);
+      ctx.fillStyle = grd; ctx.fillRect(sx - rad, sy - rad, rad * 2, rad * 2);
+    }
+  }
+
+  renderVals() {
+    const step = this.getStep(), m = MODES[this.state.mode];
+    const showRej = this.state.showRej ?? (this.props.showRejected ?? true);
+    const go = (i) => () => this.setState({ step: i, iter: i === 3 ? 0 : this.state.iter });
+    let seed = 3; const r = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    const thr = parseInt(m.blur);
+    const bars = Array.from({ length: 96 }, (_, i) => { const v = 40 + r() * 140 - (i % 17 === 3 ? 90 : 0); return { h: Math.max(6, Math.min(100, v / 1.8)), c: v < thr ? '#7a3a30' : '#4a4f57' }; });
+    let frames = Array.from({ length: 60 }, (_, i) => { const bad = i % 9 === 4 || i % 23 === 11; return { id: String(i * 3 + 1).padStart(5, '0'), ok: !bad, bad, reason: i % 23 === 11 ? 'DUPLICATE' : 'BLUR' }; });
+    if (!showRej) frames = frames.filter(f => f.ok);
+    const fmt = (n) => n.toLocaleString('en-US');
+    const it = Math.round(this.state.iter * parseInt(m.iters.replace(/,/g, '')));
+    return {
+      projectName: 'kitchen_scan_v3',
+      steps: STEPS.map((label, i) => ({ label, num: '0' + (i + 1), active: i === step, inactive: i !== step, go: go(i) })),
+      modeOptions: Object.entries(MODES).map(([k, v]) => ({ label: v.label, active: k === this.state.mode, inactive: k !== this.state.mode, pick: () => this.setState({ mode: k }) })),
+      isImport: step === 0, isFrames: step === 1, isConfig: step === 2, isTrain: step === 3,
+      next: go(Math.min(3, step + 1)),
+      clips: [
+        { name: 'IMG_4821.MOV', codec: 'HEVC · 10-bit · iPhone 15 Pro', dur: '01:42', res: '3840×2160', fps: '30', est: fmt(Math.round(m.frames * 0.55)), status: 'Ready' },
+        { name: 'IMG_4822.MOV', codec: 'HEVC · 10-bit · iPhone 15 Pro', dur: '00:58', res: '3840×2160', fps: '30', est: fmt(Math.round(m.frames * 0.3)), status: 'Ready' },
+        { name: 'pass_03_slow.mp4', codec: 'H.264 · 8-bit', dur: '00:31', res: '1920×1080', fps: '60', est: fmt(Math.round(m.frames * 0.15)), status: 'Ready' }
+      ],
+      extraction: [
+        { k: 'Sample rate', v: m.fps, hint: 'Preset for ' + m.label.toLowerCase() + ' captures' },
+        { k: 'Max frames', v: m.max, hint: 'Evenly spaced if exceeded' },
+        { k: 'Blur rejection', v: m.blur, hint: 'Min. Laplacian variance' },
+        { k: 'Output resolution', v: m.res, hint: 'Long edge, JPEG q95' }
+      ],
+      frameSummary: `${fmt(m.frames)} frames extracted · ${m.rejected} rejected for blur or near-duplicate content · ${fmt(m.frames - m.rejected)} sent to camera solve`,
+      rejectedLabel: showRej ? 'Hide rejected' : 'Show rejected',
+      toggleRejected: () => this.setState({ showRej: !showRej }),
+      blurThreshold: m.blur, sharpBars: bars, frames,
+      modeLabel: m.label, modeDesc: m.desc, modeShort: m.short,
+      groups: m.groups.map(g => ({ title: g.title, tag: g.tag, rows: g.rows.map(([k, v, hint]) => ({ k, v, hint, isOn: v === true, isOff: v === false, isVal: typeof v !== 'boolean' })) })),
+      canvasRef: this.canvasRef,
+      iterLabel: fmt(it) + ' / ' + m.iters,
+      progressPct: Math.round(this.state.iter * 100),
+      trainSummary: `${fmt(m.frames - m.rejected)} cameras registered · training ${m.label.toLowerCase()} preset`,
+      trainStats: [
+        { k: 'Gaussians', v: (parseFloat(m.gauss) * (0.2 + this.state.iter * 0.8)).toFixed(1) + 'M' },
+        { k: 'PSNR', v: (22 + this.state.iter * 7.4).toFixed(2) + ' dB' },
+        { k: 'L1 loss', v: (0.09 - this.state.iter * 0.068).toFixed(4) },
+        { k: 'Elapsed', v: Math.round(this.state.iter * parseInt(m.eta)) + (m.eta.includes('h') ? ' h' : ' min') }
+      ],
+      profile: [['Sample rate', m.fps], ['Max frames', m.max], ['Blur threshold', m.blur], ['Camera model', m.groups[0].rows[0][1]], ['Matcher', m.groups[0].rows[1][1]], ['Iterations', m.iters], ['SH degree', m.groups[2].rows[1][1]], ['Target gaussians', m.gauss]].map(([k, v]) => ({ k, v })),
+      vram: m.vram, vramPct: m.vp, eta: m.eta
+    };
+  }
+}
+</script>
+</body>
+</html>
